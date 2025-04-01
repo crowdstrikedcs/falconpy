@@ -71,7 +71,7 @@ This will create/update `rules/rules.json` with the current state from the API.
 ### Updating Rules
 1) Modify the desired rule in `rules.json`
 2) Run the sync script to apply changes
-### Deleteing Rules
+### Deleting Rules
 1) Add `"deleted": true` to the rule in rules.json
 2) Run the sync script to delete the rule from the API
 ## File Structure
