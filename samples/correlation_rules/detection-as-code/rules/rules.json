@@ -1,0 +1,30 @@
+[
+  {
+    "id": "e81da9ab6c93439f9fd976df4d729188",
+    "name": "DetectionCodeDemo",
+    "description": "Demo Rule For Correlation As Code",
+    "customer_id": "9ea05d76ee104029bde26d55c7b5f7a9",
+    "tactic": "TA0011",
+    "technique": "T1102.002",
+    "severity": 50,
+    "search": {
+      "outcome": "detection",
+      "filter": "DetectionDemoTest",
+      "lookback": "2h0m",
+      "trigger_mode": "summary"
+    },
+    "operation": {
+      "schedule": {
+        "definition": "@every 1h0m"
+      },
+      "start_on": "2025-03-20T17:45:00Z"
+    },
+    "api_client_id": "",
+    "user_uuid": "3bb657e1-5dbf-499f-86a9-18cc1fcbd2c5",
+    "user_id": "dixon.styres@crowdstrike.com",
+    "last_updated_on": "2025-03-20T17:19:27.353926427Z",
+    "created_on": "2025-03-20T17:19:27.353926427Z",
+    "status": "active",
+    "template_id": ""
+  }
+]
