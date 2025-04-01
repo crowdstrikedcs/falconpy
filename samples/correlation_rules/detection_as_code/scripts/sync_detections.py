@@ -38,8 +38,9 @@ Creation date: 02.28.2025 - Initial version, crowdstrikedcs@crowdstrike
 import json
 import logging
 import os
+import traceback
 from typing import List, Dict, Tuple
-from falconpydev import CorrelationRules
+from falconpy import CorrelationRules
 
 
 class CorrelationRulesClient:
@@ -293,7 +294,7 @@ class CorrelationRulesClient:
             delete_failed = []
 
             for rule_id in rules_to_delete:
-                if self.delete_rule_from_api(rule_id['id']):
+                if self.delete_rule_from_api(rule_id):
                     delete_success.append(rule_id)
                     changes_made = True
                 else:
@@ -333,6 +334,7 @@ class CorrelationRulesClient:
 
         except Exception as e:
             self.logger.error("Error in update process: %s", str(e))
+            print(traceback.format_exc())
             return False
 
     def update_rules_file(self, rules):
