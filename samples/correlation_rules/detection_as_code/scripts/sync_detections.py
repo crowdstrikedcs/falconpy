@@ -1,15 +1,39 @@
-r"""Sample to manage correlation rules as part of a detection as code
-    pipeline.
+r"""Sample to manage correlation rules as part of a detection as code pipeline.
 
+▄█▄    ████▄ █▄▄▄▄ █▄▄▄▄ ▄███▄   █    ██     ▄▄▄▄▀ ▄█ ████▄    ▄
+█▀ ▀▄  █   █ █  ▄▀ █  ▄▀ █▀   ▀  █    █ █ ▀▀▀ █    ██ █   █     █
+█   ▀  █   █ █▀▀▌  █▀▀▌  ██▄▄    █    █▄▄█    █    ██ █   █ ██   █
+█▄  ▄▀ ▀████ █  █  █  █  █▄   ▄▀ ███▄ █  █   █     ▐█ ▀████ █ █  █
+▀███▀          █     █   ▀███▀       ▀   █  ▀       ▐       █  █ █
+              ▀     ▀                   █                   █   ██
+                                       ▀
+                            █▄▄▄▄  ▄   █     ▄███▄     ▄▄▄▄▄
+                           █  ▄▀   █  █     █▀   ▀   █     ▀▄
+                          █▀▀▌ █   █ █     ██▄▄   ▄  ▀▀▀▀▄
+                          █  █ █   █ ███▄  █▄   ▄▀ ▀▄▄▄▄▀
+                            █  █▄ ▄█     ▀ ▀███▀
+                           ▀    ▀▀▀
 
-This solution leverages the CorrelationRules service collection
+██████╗ ███████╗████████╗███████╗ ██████╗████████╗██╗ ██████╗ ███╗   ██╗
+██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔════╝╚══██╔══╝██║██╔═══██╗████╗  ██║
+██║  ██║█████╗     ██║   █████╗  ██║        ██║   ██║██║   ██║██╔██╗ ██║
+██║  ██║██╔══╝     ██║   ██╔══╝  ██║        ██║   ██║██║   ██║██║╚██╗██║
+██████╔╝███████╗   ██║   ███████╗╚██████╗   ██║   ██║╚██████╔╝██║ ╚████║
+╚═════╝ ╚══════╝   ╚═╝   ╚══════╝ ╚═════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═╝  ╚═══╝
 
+ █████╗ ███████╗     ██████╗ ██████╗ ██████╗ ███████╗
+██╔══██╗██╔════╝    ██╔════╝██╔═══██╗██╔══██╗██╔════╝
+███████║███████╗    ██║     ██║   ██║██║  ██║█████╗
+██╔══██║╚════██║    ██║     ██║   ██║██║  ██║██╔══╝     Built with
+██║  ██║███████║    ╚██████╗╚██████╔╝██████╔╝███████╗       FalconPy v1.4.8
+╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
+
+This solution leverages the CorrelationRules service collection.
 
 REQUIRES
     crowdstrike-falconpy    https://github.com/CrowdStrike/falconpy
 
 Creation date: 02.28.2025 - Initial version, crowdstrikedcs@crowdstrike
-
 """
 import json
 import logging
@@ -17,10 +41,9 @@ import os
 from typing import List, Dict, Tuple
 from falconpy import CorrelationRules
 
+
 class CorrelationRulesClient:
-    """
-    Class to watch for changes to a local JSON of correlation rules
-    """
+    """Class to watch for changes to a local JSON of correlation rules."""
     def __init__(self):
         self.setup_logger()
         self.logger = logging.getLogger(__name__)
@@ -28,9 +51,9 @@ class CorrelationRulesClient:
         self.rules_file = "rules/rules.json"
 
     def setup_logger(self):
-        """
-        Setup logging configuration using LOG_LEVEL environment variable
-        Default to INFO if not specified
+        """Setup logging configuration using LOG_LEVEL environment variable.
+
+        Default to INFO if not specified.
         """
         # Get log level from environment variable, default to INFO
         log_level = os.environ.get('LOG_LEVEL', 'INFO').upper()
@@ -45,20 +68,16 @@ class CorrelationRulesClient:
         self.logger.debug("Logging initialized at %s level", log_level)
 
     def initialize_falcon_client(self):
-        """
-        Setup FalconPy Harness
-        """
+        """Setup FalconPy Harness."""
         try:
-            client_id = os.environ.get('FALCON_CLIENT_ID')
-            client_secret = os.environ.get('FALCON_CLIENT_SECRET')
-            base_url = os.environ.get('FALCON_BASE_URL', 'https://api.crowdstrike.com')
+            base_url = os.environ.get("FALCON_BASE_URL", "auto")
 
-            if not client_id or not client_secret:
+            if not os.environ.get('FALCON_CLIENT_ID') or not os.environ.get('FALCON_CLIENT_SECRET'):
                 raise ValueError("FALCON_CLIENT_ID and FALCON_CLIENT_SECRET must be set")
 
-            falcon = CorrelationRules(client_id=client_id,
-                              client_secret=client_secret,
-                              base_url=base_url, debug=True)
+            # Authenticates using Environment Authentication
+            # https://falconpy.io/Usage/Authenticating-to-the-API.html#environment-authentication
+            falcon = CorrelationRules(base_url=base_url, debug=True)
             self.logger.info("FalconPy client initialized successfully")
             return falcon
 
@@ -67,9 +86,7 @@ class CorrelationRulesClient:
             raise
 
     def get_all_rules(self):
-        """
-            Load rules from API
-        """
+        """Load rules from API."""
         rules = []
         offset = 0
         limit = 100
@@ -78,16 +95,11 @@ class CorrelationRulesClient:
 
         try:
             while True:
-                params = {
-                    "limit": limit, 
-                    "offset": offset,
-                    "sort": "last_updated_on|asc"
-                }
+                sort = "last_updated_on|asc"
+
                 self.logger.debug("Fetching rules with offset %s", offset)
 
-                response = self.falcon.get_rules_combined(
-                    parameters=params
-                )
+                response = self.falcon.get_rules_combined(limit=limit, offset=offset, sort=sort)
 
                 if response["status_code"] != 200:
                     self.logger.error("API request failed with status %s", response['status_code'])
@@ -112,9 +124,9 @@ class CorrelationRulesClient:
         return rules
 
     def load_local_rules(self) -> List[Dict]:
-        """
-        Load rules from local rules.json file
-        Returns empty list if file doesn't exist or is empty
+        """Load rules from local rules.json file.
+
+        Returns empty list if file doesn't exist or is empty.
         """
         try:
             if not os.path.exists(self.rules_file):
@@ -142,9 +154,9 @@ class CorrelationRulesClient:
             return []
 
     def is_rule_different(self, local_rule: Dict, api_rule: Dict) -> bool:
-        """
-        Compare relevant fields between local and API rules
-        Returns True if rules are different
+        """Compare relevant fields between local and API rules.
+
+        Returns True if rules are different.
         """
         compare_fields = [
             'name',
@@ -165,9 +177,7 @@ class CorrelationRulesClient:
         return False
 
     def get_nested_value(self, rule: Dict, field_path: str) -> any:
-        """
-        Safely get nested field values using dot notation
-        """
+        """Safely get nested field values using dot notation."""
         try:
             current = rule
             for part in field_path.split('.'):
@@ -178,14 +188,12 @@ class CorrelationRulesClient:
             return None
 
     def delete_rule_from_api(self, rule_id: str) -> bool:
-        """
-        Delete a rule from the API
-        Returns True if successful
+        """Delete a rule from the API.
+
+        Returns True if successful.
         """
         try:
-            response = self.falcon.delete_rules(
-                parameters={"ids": rule_id}
-            )
+            response = self.falcon.delete_rules(ids=rule_id)
 
             if response["status_code"] == 200:
                 self.logger.info("Successfully deleted rule %s", rule_id)
@@ -198,10 +206,13 @@ class CorrelationRulesClient:
             self.logger.error("Error deleting rule %s: %s", rule_id, str(e))
             return False
 
-    def compare_rules(self, api_rules: List[Dict], local_rules: List[Dict]) -> Tuple[List[Dict], List[Dict], List[str], List[Dict]]:
-        """
-        Compare API rules with local rules to identify updates, deletions, and creations
-        Returns tuple of (rules_to_update, current_rules, rules_to_delete, rules_to_create)
+    def compare_rules(self,
+                      api_rules: List[Dict],
+                      local_rules: List[Dict]
+                      ) -> Tuple[List[Dict], List[Dict], List[str], List[Dict]]:
+        """Compare API rules with local rules to identify updates, deletions, and creations.
+
+        Returns tuple of (rules_to_update, current_rules, rules_to_delete, rules_to_create).
         """
         self.logger.info("Starting rules comparison")
         # Create dictionaries keyed by rule ID for easier lookup
@@ -246,9 +257,7 @@ class CorrelationRulesClient:
         return rules_to_update, api_rules, rules_to_delete, rules_to_create
 
     def process_updates(self):
-        """
-        Main method to handle the update process
-        """
+        """Main method to handle the update process."""
         try:
             # Load local rules or initialize if empty
             local_rules = self.load_local_rules()
@@ -327,7 +336,7 @@ class CorrelationRulesClient:
             return False
 
     def update_rules_file(self, rules):
-        """Update the rules file"""
+        """Update the rules file."""
         try:
             os.makedirs(os.path.dirname(self.rules_file), exist_ok=True)
             with open(self.rules_file, 'w', encoding="utf-8") as f:
@@ -338,10 +347,10 @@ class CorrelationRulesClient:
             self.logger.error("Error updating rules file: %s", str(e))
             raise
 
-    def update_rule_in_api(self, rule: Dict) -> bool:
-        """
-        Update a single rule in the API
-        Returns True if successful
+    def update_rule_in_api(self, rule: Dict) -> bool:  # noqa: C901
+        """Update a single rule in the API.
+
+        Returns True if successful.
         """
         try:
             # Define the allowed fields for update, including nested paths
@@ -398,12 +407,12 @@ class CorrelationRulesClient:
                                 source_value = source['search']['search']
                             else:
                                 source_value = source['search']
-                            
+
                             nested_result = {}
-                            for subkey, subvalue in value.items():
+                            for subkey in value.keys():
                                 if subkey in source_value:
                                     nested_result[subkey] = source_value[subkey]
-                            
+
                             if nested_result:
                                 set_nested_value(result, path, nested_result)
                         else:
@@ -415,9 +424,7 @@ class CorrelationRulesClient:
 
             update_payload = build_payload(update_fields, rule)
 
-            response = self.falcon.update_rule(
-                body=[update_payload]
-            )
+            response = self.falcon.update_rule(body=[update_payload])
 
             if response["status_code"] == 200:
                 self.logger.info("Successfully updated rule %s", rule['id'])
@@ -497,9 +504,11 @@ class CorrelationRulesClient:
             for field in fields_to_remove:
                 create_payload.pop(field, None)
 
-            response = self.falcon.create_rule(
-                body=create_payload
-            )
+            # response = self.falcon.create_rule(
+            #     body=create_payload
+            # )
+
+            response = self.falcon.create_rule(**create_payload)
 
             if response["status_code"] == 200:
                 self.logger.info("Successfully created rule: %s", rule.get('name'))
@@ -512,10 +521,9 @@ class CorrelationRulesClient:
             self.logger.error("Error creating rule: %s", str(e))
             return False
 
+
 def main():
-    """
-    Entry Point
-    """
+    """Entry Point."""
     try:
         client = CorrelationRulesClient()
         success = client.process_updates()
@@ -524,6 +532,7 @@ def main():
     except Exception as e:
         logging.error("Script failed: %s", str(e))
         return 1
+
 
 if __name__ == "__main__":
     exit(main())
