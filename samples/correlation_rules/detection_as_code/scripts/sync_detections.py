@@ -292,7 +292,7 @@ class CorrelationRulesClient:
             delete_success = []
             delete_failed = []
 
-            for rule_id in local_rules:
+            for rule_id in rules_to_delete:
                 if self.delete_rule_from_api(rule_id['id']):
                     delete_success.append(rule_id)
                     changes_made = True
@@ -503,10 +503,6 @@ class CorrelationRulesClient:
             fields_to_remove = {'id', 'created_on', 'last_updated_on', 'deleted'}
             for field in fields_to_remove:
                 create_payload.pop(field, None)
-
-            # response = self.falcon.create_rule(
-            #     body=create_payload
-            # )
 
             response = self.falcon.create_rule(**create_payload)
 
