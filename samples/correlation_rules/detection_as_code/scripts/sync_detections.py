@@ -39,7 +39,7 @@ import json
 import logging
 import os
 from typing import List, Dict, Tuple
-from falconpy import CorrelationRules
+from falconpydev import CorrelationRules
 
 
 class CorrelationRulesClient:
