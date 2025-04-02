@@ -28,13 +28,16 @@ r"""Sample to manage correlation rules as part of a detection as code pipeline.
 ██║  ██║███████║    ╚██████╗╚██████╔╝██████╔╝███████╗       FalconPy v1.4.8
 ╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝
 
-This solution leverages the CorrelationRules service collection.
+This solution leverages the CorrelationRules service collection to manage
+CrowdStrike Correlation Rules as code, enabling version control and automated
+deployment of detection rules.
 
 REQUIRES
     crowdstrike-falconpy    https://github.com/CrowdStrike/falconpy
 
 Creation date: 02.28.2025 - Initial version, crowdstrikedcs@crowdstrike
 """
+# pylint: disable=W0718,W0719
 import json
 import logging
 import os
@@ -45,14 +48,16 @@ from falconpy import CorrelationRules
 
 class CorrelationRulesClient:
     """Class to watch for changes to a local JSON of correlation rules."""
+
     def __init__(self):
+        """Construct an instance of the class."""
         self.setup_logger()
         self.logger = logging.getLogger(__name__)
         self.falcon = self.initialize_falcon_client()
         self.rules_file = "rules/rules.json"
 
     def setup_logger(self):
-        """Setup logging configuration using LOG_LEVEL environment variable.
+        """Set up logging configuration using LOG_LEVEL environment variable.
 
         Default to INFO if not specified.
         """
@@ -69,7 +74,7 @@ class CorrelationRulesClient:
         self.logger.debug("Logging initialized at %s level", log_level)
 
     def initialize_falcon_client(self):
-        """Setup FalconPy Harness."""
+        """Set up FalconPy Harness."""
         try:
             base_url = os.environ.get("FALCON_BASE_URL", "auto")
 
@@ -199,9 +204,9 @@ class CorrelationRulesClient:
             if response["status_code"] == 200:
                 self.logger.info("Successfully deleted rule %s", rule_id)
                 return True
-            else:
-                self.logger.error("Failed to delete rule %s: %s", rule_id, response)
-                return False
+
+            self.logger.error("Failed to delete rule %s: %s", rule_id, response)
+            return False
 
         except Exception as e:
             self.logger.error("Error deleting rule %s: %s", rule_id, str(e))
@@ -257,8 +262,8 @@ class CorrelationRulesClient:
 
         return rules_to_update, api_rules, rules_to_delete, rules_to_create
 
-    def process_updates(self):
-        """Main method to handle the update process."""
+    def process_updates(self):  # pylint: disable=R0914
+        """Process any updates update process."""
         try:
             # Load local rules or initialize if empty
             local_rules = self.load_local_rules()
@@ -273,7 +278,9 @@ class CorrelationRulesClient:
                 return True
 
             # Continue with normal update process
-            rules_to_update, current_rules, rules_to_delete, rules_to_create = self.compare_rules(api_rules, local_rules)
+            rules_to_update, current_rules, rules_to_delete, rules_to_create = self.compare_rules(
+                api_rules, local_rules
+                )
 
             changes_made = False
 
@@ -388,8 +395,11 @@ class CorrelationRulesClient:
                 if value is not None:
                     current[field_path[-1]] = value
 
-            # Build update payload recursively
-            def build_payload(template: Dict, source: Dict, current_path: List[str] = None) -> Dict:
+            # Build update payload recursively  # pylint: disable=R0912
+            def build_payload(template: Dict,
+                              source: Dict,
+                              current_path: List[str] = None
+                              ) -> Dict:
                 if current_path is None:
                     current_path = []
 
@@ -403,7 +413,9 @@ class CorrelationRulesClient:
                             set_nested_value(result, path, source_value)
                     elif isinstance(value, dict):
                         # Handle nested search object specifically
-                        if key == 'search' and 'search' in source and isinstance(source['search'], dict):
+                        if key == 'search' and 'search' in source and isinstance(
+                            source['search'], dict
+                            ):
                             # If source has nested search.search, use its contents
                             if 'search' in source['search']:
                                 source_value = source['search']['search']
@@ -426,22 +438,22 @@ class CorrelationRulesClient:
 
             update_payload = build_payload(update_fields, rule)
 
-            response = self.falcon.update_rule(body=[update_payload])
+            response = self.falcon.update_rule(**update_payload)
 
             if response["status_code"] == 200:
                 self.logger.info("Successfully updated rule %s", rule['id'])
                 return True
-            else:
-                self.logger.error("Failed to update rule %s: %s", rule['id'], response)
-                return False
+
+            self.logger.error("Failed to update rule %s: %s", rule['id'], response)
+            return False
 
         except Exception as e:
             self.logger.error("Error updating rule %s: %s", rule['id'], str(e))
             return False
 
     def create_rule_in_api(self, rule: Dict) -> bool:
-        """
-        Create a new rule in the API
+        """Create a new rule in the API.
+
         Returns True if successful
         """
         try:
@@ -474,7 +486,10 @@ class CorrelationRulesClient:
                 return current
 
             # Helper function to check nested required fields
-            def check_required_fields(template: Dict, data: Dict, current_path: List[str] = None) -> List[str]:
+            def check_required_fields(template: Dict,
+                                      data: Dict,
+                                      current_path: List[str] = None
+                                      ) -> List[str]:
                 if current_path is None:
                     current_path = []
 
@@ -511,9 +526,9 @@ class CorrelationRulesClient:
             if response["status_code"] == 200:
                 self.logger.info("Successfully created rule: %s", rule.get('name'))
                 return True
-            else:
-                self.logger.error("Failed to create rule: %s", response)
-                return False
+
+            self.logger.error("Failed to create rule: %s", response)
+            return False
 
         except Exception as e:
             self.logger.error("Error creating rule: %s", str(e))
@@ -525,7 +540,9 @@ def main():
     try:
         client = CorrelationRulesClient()
         success = client.process_updates()
-        logging.info("Script completed successfully" if success else "Script completed with some failures")
+        logging.info(
+            "Script completed successfully" if success else "Script completed with some failures"
+            )
         return 0 if success else 1
     except Exception as e:
         logging.error("Script failed: %s", str(e))
@@ -533,4 +550,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    main()
