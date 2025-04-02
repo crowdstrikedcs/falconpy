@@ -33,7 +33,7 @@ CrowdStrike Correlation Rules as code, enabling version control and automated
 deployment of detection rules.
 
 REQUIRES
-    crowdstrike-falconpy    https://github.com/CrowdStrike/falconpy
+crowdstrike-falconpy v1.4.8 or greater    https://github.com/CrowdStrike/falconpy
 
 Creation date: 02.28.2025 - Initial version, crowdstrikedcs@crowdstrike
 """
